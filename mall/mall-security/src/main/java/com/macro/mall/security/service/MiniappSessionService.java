@@ -21,6 +21,8 @@ public class MiniappSessionService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MiniappSessionService.class);
     public static final String MEMBER = "member";
     public static final String ADMIN = "admin";
+    /** 摊主（小程序管理员）会话对应的 Spring Security 权限标识 */
+    public static final String AUTHORITY_MINIAPP_ADMIN = "MINIAPP_ADMIN";
 
     @Autowired
     private RedisService redisService;

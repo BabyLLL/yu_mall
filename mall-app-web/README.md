@@ -80,7 +80,7 @@ src -- 源码目录
 - 注意由于`mall-app-web`中的接口都在`mall-portal`模块中，所以一定要启动该模块；
 - 访问在线接口无需搭建后台环境，只需将`.env.development`文件中的`VITE_API_BASE_URL`改为线上地址即可：https://portal-api.macrozheng.com
 - 克隆源代码到本地，使用`VSCode`打开，使用`npm install`命令安装项目依赖；
-- H5 端运行：在`VSCode`中使用`npm run dev:h5`运行项目，运行成功后打开下面地址（将浏览器改为手机模式）：http://localhost:5173
+- H5 端运行：在`VSCode`中使用`npm run dev:h5`运行项目，运行成功后打开下面地址（将浏览器改为手机模式）：http://192.168.1.66:5173
 - 微信小程序端运行：在`VSCode`中使用`npm run dev:mp-weixin`运行项目，运行成功后在`微信开发者工具`中导入项目的`\dist\dev\mp-weixin`即可运行
 
 ## 公众号

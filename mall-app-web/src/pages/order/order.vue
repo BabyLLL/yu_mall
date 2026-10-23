@@ -88,8 +88,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { onLoad, onPullDownRefresh, onShow } from '@dcloudio/uni-app'
+import { computed, ref } from 'vue'
+import { onHide, onLoad, onPullDownRefresh, onShow, onUnload } from '@dcloudio/uni-app'
 import { formatDate } from '@/utils/date'
 import { cancelStallOrderAPI, getStallOrderListAPI } from '@/apis/stall'
 import { useOrderTabStore } from '@/stores/order-tab'
@@ -191,6 +191,39 @@ const loadData = async (type: 'refresh' | 'add' = 'refresh') => {
   }
 }
 
+// ===== 轮询自动刷新 =====
+// 摊主推进状态后，顾客停留在订单页也能自动看到最新状态（约 10s 一轮）
+const POLL_INTERVAL_MS = 10000
+// 轮询定时器（onShow 启动，onHide/onUnload 停止；无进行中订单时自动停止）
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+// 是否存在进行中订单（状态 0-3）
+const hasOngoingOrder = computed(() => orderList.value.some((o) => isOngoing(o.status)))
+
+// 按当前是否有进行中订单同步轮询启停
+const syncPolling = () => {
+  if (hasOngoingOrder.value) {
+    if (pollTimer == null) {
+      pollTimer = setInterval(silentRefresh, POLL_INTERVAL_MS)
+    }
+  } else {
+    stopPolling()
+  }
+}
+
+const stopPolling = () => {
+  if (pollTimer != null) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
+// 静默刷新当前 tab 列表（复用 loadData 的 loading 防重入）
+const silentRefresh = async () => {
+  await loadData('refresh')
+  syncPolling()
+}
+
 // 应用其他页面（如"我的"页）switchTab 过来的目标 Tab（switchTab 无法携带 query）
 const applyPendingTab = () => {
   const pending = orderTabStore.takePendingTab()
@@ -209,10 +242,20 @@ onLoad((options) => {
   loadData()
 })
 
-// 页面显示时刷新（从摊主模式切回、下单完成、从"我的"页跳转等场景）
-onShow(() => {
+// 页面显示时刷新（从摊主模式切回、下单完成、从"我的"页跳转等场景），并按需启动轮询
+onShow(async () => {
   applyPendingTab()
-  loadData('refresh')
+  await loadData('refresh')
+  syncPolling()
+})
+
+// 页面隐藏/卸载时停止轮询
+onHide(() => {
+  stopPolling()
+})
+
+onUnload(() => {
+  stopPolling()
 })
 
 // ===== onPullDownRefresh =====
@@ -224,15 +267,17 @@ onPullDownRefresh(() => {
 // ===== 事件处理方法 =====
 
 // Swiper切换
-const handleSwiperChange = (e: { detail: { current: number } }) => {
+const handleSwiperChange = async (e: { detail: { current: number } }) => {
   tabCurrentIndex.value = e.detail.current
-  loadData()
+  await loadData()
+  syncPolling()
 }
 
 // 顶部Tab点击
-const handleTabClick = (index: number) => {
+const handleTabClick = async (index: number) => {
   tabCurrentIndex.value = index
-  loadData()
+  await loadData()
+  syncPolling()
 }
 
 // 取消订单（仅已下单状态可取消）

@@ -59,8 +59,8 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             String username = jwtTokenUtil.getUserNameFromToken(authToken);
             LOGGER.info("checking username:{}", username);
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                if (jwtTokenUtil.validateToken(authToken, userDetails)) {
+                UserDetails userDetails = buildUserDetails(authToken, username, adminSession);
+                if (userDetails != null && jwtTokenUtil.validateToken(authToken, userDetails)) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     LOGGER.info("authenticated user:{}", username);
@@ -69,6 +69,21 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             }
         }
         chain.doFilter(request, response);
+    }
+
+    /**
+     * 构造认证主体：摊主会话（authType=admin）的身份只存在于 token 中，
+     * 不能经 userDetailsService 查会员表（必然查不到），直接从 subject 构造；
+     * 其余会话仍走 userDetailsService。
+     */
+    private UserDetails buildUserDetails(String authToken, String username, boolean adminSession) {
+        if (!adminSession) {
+            return this.userDetailsService.loadUserByUsername(username);
+        }
+        return org.springframework.security.core.userdetails.User.withUsername(username)
+                .password("")
+                .authorities(MiniappSessionService.AUTHORITY_MINIAPP_ADMIN)
+                .build();
     }
 
     private boolean isAdminSessionActive(Map<String, Object> claims) {

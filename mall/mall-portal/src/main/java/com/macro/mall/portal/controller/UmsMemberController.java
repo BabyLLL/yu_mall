@@ -132,7 +132,7 @@ public class UmsMemberController {
         String subject = MiniappSessionService.ADMIN + ":" + admin.getUsername();
         UserDetails details = User.withUsername(subject)
                 .password(admin.getPassword())
-                .authorities("MINIAPP_ADMIN")
+                .authorities(MiniappSessionService.AUTHORITY_MINIAPP_ADMIN)
                 .build();
         MiniappSession session = miniappSessionService.activateIfAbsent(
                 clientId, MiniappSessionService.ADMIN, subject);

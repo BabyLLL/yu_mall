@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +22,9 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -142,6 +146,27 @@ class JwtAuthenticationTokenFilterTest {
         verify(filterChain).doFilter(request, response);
     }
 
+    @Test
+    void activeAdminSessionIsAuthenticatedWithoutMemberLookup() throws Exception {
+        MockHttpServletRequest request = request();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        when(jwtTokenUtil.getClaims("jwt")).thenReturn(adminClaims());
+        when(sessionService.isActive("client-1", "session-1", "admin", "admin:admin"))
+                .thenReturn(true);
+        when(jwtTokenUtil.getUserNameFromToken("jwt")).thenReturn("admin:admin");
+        when(jwtTokenUtil.validateToken(eq("jwt"), any(UserDetails.class))).thenReturn(true);
+
+        filter.doFilter(request, response, filterChain);
+
+        // 摊主会话直接从 token 构造认证主体，携带 MINIAPP_ADMIN，且绝不查会员表
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assertNotNull(authentication);
+        assertTrue(authentication.getAuthorities().stream()
+                .anyMatch(a -> MiniappSessionService.AUTHORITY_MINIAPP_ADMIN.equals(a.getAuthority())));
+        verifyNoInteractions(userDetailsService);
+        verify(filterChain).doFilter(request, response);
+    }
+
     private MockHttpServletRequest request() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer jwt");
@@ -155,5 +180,13 @@ class JwtAuthenticationTokenFilterTest {
                 "sessionId", "session-1",
                 "authType", "member",
                 "sub", "member-1");
+    }
+
+    private Map<String, Object> adminClaims() {
+        return Map.of(
+                "clientId", "client-1",
+                "sessionId", "session-1",
+                "authType", "admin",
+                "sub", "admin:admin");
     }
 }

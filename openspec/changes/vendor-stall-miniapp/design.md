@@ -73,6 +73,21 @@ mall-app-web（uni-app Vue3 + TS 微信小程序）当前为标准电商形态�
 
 复用 RabbitMQ 延迟消息：下单时发延迟消息（超时时长建议改为可配置，摊位场景默认 30 分钟），消费者将未付款订单置为已取消(5)并释放库存。与现有 CancelOrderSender/Receiver 结构一致，仅状态值与超时参数调整。
 
+### D8: 摊主接口 401 修复——filter 对 admin 会话直接从 claims 构造认证主体（2026-10-23 联调发现）
+
+联调实证：`POST /sso/miniapp/admin/login` 签发 token 成功，但所有 `/stall/vendor/**` 接口 401。根因：登录时构造的 `UserDetails`（含 `MINIAPP_ADMIN` 权限）只存在于登录请求内存中，权限未进 token claims；请求期 `JwtAuthenticationTokenFilter` 统一走 `userDetailsService.loadUserByUsername("admin:test")`，portal 的实现绑定 `UmsMemberServiceImpl`（查 `ums_member` 表），必然抛 `UsernameNotFoundException`，SecurityContext 为空，`@PreAuthorize("hasAuthority('MINIAPP_ADMIN')")` 拒绝。会话校验（`isAdminSessionActive`）本身是通过的。
+
+修复（方案 A）：`JwtAuthenticationTokenFilter` 对 admin 会话（`authType=admin` 且会话有效）不走 `userDetailsService`，直接以 token subject 构造 `User.withUsername(sub).authorities("MINIAPP_ADMIN")`；权限常量定义在 mall-security（如 `MiniappSessionService`），登录处复用。`JwtTokenUtil.validateToken` 仅比对用户名/过期/启用，与该 UserDetails 兼容。
+
+- **替代方案 B**：portal 的 UserDetailsService 识别 `admin:` 前缀再查 ums_admin。否——会员查询服务被迫懂摊主约定，耦合差。
+- **替代方案 C**：权限写入 token claims、filter 读取。更通用但本次无通用性需求，两处改动不如 A 聚焦。
+
+### D9: 顾客订单页轮询自动刷新（2026-10-23 追加）
+
+摊主推进状态后，顾客订单页仅在 `onShow`/切 tab/下拉刷新时重拉数据，停留页面不自动更新。追加轮询：订单页定时（约 10s）静默刷新当前 tab 列表；`onShow` 启动、`onHide`/`onUnload` 停止；仅在存在进行中订单（状态 0-3）时轮询，全部终态则不轮询。不做 WebSocket/订阅消息推送（与 Non-Goal 一致，口头叫号 + 顾客自查的体验定位）。
+
+- **理由**：改动集中在 order.vue 一个页面，无后端改动；摊位场景订单量极低，10s 轮询无压力。
+
 ## Risks / Trade-offs
 
 - [status 语义重映射与历史数据混淆] → 摊位上线前订单量少；映射集中在常量类，列表查询按新语义过滤；如已有历史电商订单，列表默认只查摊位来源（sourceType 或 orderType 标记新单，见 Open Questions）。

@@ -394,7 +394,7 @@ src/
 | 文件                    | 作用                                                      |
 | ----------------------- | --------------------------------------------------------- |
 | `.env`                  | 通用环境变量（API 基础地址默认指向开发环境）              |
-| `.env.development`      | 开发环境变量（API → `http://localhost:8085`）             |
+| `.env.development`      | 开发环境变量（API → `http://192.168.1.66:8085`）             |
 | `.env.production`       | 生产环境变量（API → `https://portal-api.macrozheng.com`） |
 | `vite.config.ts`        | Vite 构建配置（集成 uni-app 插件、sourcemap）             |
 | `tsconfig.json`         | TypeScript 配置（路径别名 `@/*`、类型声明）               |
@@ -872,7 +872,7 @@ const calcTotal = () => { ... }
 | 变量                | 说明         | 开发环境              | 生产环境                          |
 | ------------------- | ------------ | --------------------- | --------------------------------- |
 | `VITE_APP_TITLE`    | 应用标题     | Mall 商城（开发环境） | Mall 商城                         |
-| `VITE_API_BASE_URL` | API 基础地址 | http://localhost:8085 | https://portal-api.macrozheng.com |
+| `VITE_API_BASE_URL` | API 基础地址 | http://192.168.1.66:8085 | https://portal-api.macrozheng.com |
 | `VITE_APP_DEBUG`    | 调试模式     | true                  | false                             |
 
 ---

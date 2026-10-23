@@ -137,13 +137,13 @@ onNavigationBarButtonTap((e: { index: number }) => {
 })
 
 // ===== 事件处理方法 =====
-// 页面导航（未登录时跳转登录页）
+// 页面导航（无任何会话时跳转登录页；摊主会话下摊主模式入口也依赖此放行）
 const handleNavTo = (url: string) => {
   if (url === '/pages/set/set' && memberStore.hasSession) {
     uni.navigateTo({ url })
     return
   }
-  if (!hasLogin.value) {
+  if (!memberStore.hasSession) {
     requestWechatAuthorization(() => {
       uni.navigateTo({ url })
     })

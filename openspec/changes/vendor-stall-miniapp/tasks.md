@@ -32,10 +32,12 @@
 
 ## 6. 前端：摊主模式
 
-- [x] 6.1 user 页加入隐藏入口（连续多次点击触发）弹出账号密码登录，调用已有 adminLoginAPI，成功后跳转 pages/vendor/index；手动验证登录成功与失败提示（已有隐藏入口（连点5次头像）+ admin 登录链路复用；新增摊主会话下的"摊主模式"入口；开发者工具验证待联调）
+- [x] 6.1 user 页加入隐藏入口（连续多次点击触发）弹出账号密码登录，调用已有 adminLoginAPI，成功后跳转 pages/vendor/index；手动验证登录成功与失败提示（已有隐藏入口（连点5次头像）+ admin 登录链路复用；新增摊主会话下的"摊主模式"入口；开发者工具验证待联调；联调修复：handleNavTo 原以会员会话判断登录态，导致摊主会话点击"摊主模式"入口被误判未登录弹「当前已有登录」，已改为按 hasSession 放行）
 - [x] 6.2 实现 pages/vendor/index.vue 两个分段：商品管理（列表含已隐藏 + 上架/隐藏开关调 vendor/product/show|hide）与订单队列（按状态分组，确认收款/开始制作/出餐完成/取消按钮对应 vendor 接口，展示取货码/清单/金额/备注）+ 退出摊主模式；手动验证隐藏商品后菜单页消失、完整订单队列流转（代码完成；开发者工具验证待联调）
 
 ## 7. 清理与端到端验证
 
 - [x] 7.1 移除入口并清理引用：首页旧楼层（秒杀/新鲜好物/人气推荐/猜你喜欢）、分类 tab、购物车 tab、优惠券/品牌/地址/支付页跳转、user 页足迹/收藏/关注入口；相关页面文件与 apis 保留不删；`npm run tsc` 与 `npm run dev:mp-weixin` 通过
 - [ ] 7.2 端到端验证：未登录→加单→登录→提交→取货码→摊主确认收款→开始制作→出餐完成→顾客查看"请取货"→（摊主或顾客视角）完成；另验证未付款超时自动取消与库存释放；全程在微信开发者工具 + 本地后端通过
+- [x] 7.3 修复摊主接口 401（见 design D8）：`JwtAuthenticationTokenFilter` 对有效 admin 会话直接从 token subject 构造含 `MINIAPP_ADMIN` 的 UserDetails，不再走 `userDetailsService` 查会员表；权限常量收敛到 mall-security 供登录处复用。验证：curl 用 admin token 调 `/stall/vendor/products`、`/stall/vendor/orders` 返回 200，member token 仍被拒；对一笔真实摊位订单走通 确认收款→开始制作→出餐完成→取货完成 四步推进且状态落库正确
+- [x] 7.4 顾客订单页轮询自动刷新（见 design D9）：order.vue 定时（约 10s）静默刷新当前 tab 列表，`onShow` 启动、`onHide`/`onUnload` 停止，仅存在进行中订单（状态 0-3）时轮询。验证：摊主推进状态后，顾客订单页停留不动约一个周期内状态更新；`npm run tsc` 与构建通过
