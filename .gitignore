@@ -1,0 +1,62 @@
+# Claude 本地缓存目录
+.claude/
+
+# Git
+.git/
+
+# ========== Java 后端 mall ==========
+mall/target/
+mall/.idea/
+mall/*.iml
+mall/.springBeans
+mall/.apt_generated
+mall/logs/
+mall/*.log
+mall/nohup.out
+mall/.env
+mall/.env.local
+
+# ========== Vue 前端 mall-admin-web / mall-app-web ==========
+mall-admin-web/node_modules/
+mall-admin-web/dist/
+mall-admin-web/.vscode/
+mall-admin-web/.idea/
+mall-admin-web/package-lock.json
+mall-admin-web/yarn.lock
+mall-admin-web/pnpm-lock.yaml
+mall-admin-web/.env
+mall-admin-web/.env.*
+
+mall-app-web/node_modules/
+mall-app-web/dist/
+mall-app-web/.vscode/
+mall-app-web/.idea/
+mall-app-web/package-lock.json
+mall-app-web/yarn.lock
+mall-app-web/pnpm-lock.yaml
+mall-app-web/.env
+mall-app-web/.env.*
+
+# ========== openspec 相关（OpenSpec 工具缓存） ==========
+openspec/.cache/
+openspec/output/
+openspec/*.log
+
+# ========== 通用 IDE、系统文件 ==========
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ========== 临时、备份、数据库、本地存储 ==========
+tmp/
+temp/
+*.bak
+*.backup
+*.db
+*.sqlite
+data/
+/mydata/

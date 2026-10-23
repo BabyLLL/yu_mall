@@ -1,0 +1,153 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "老王烤肠",
+        "navigationBarBackgroundColor": "#C23A22",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#FDF8F2",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/order/order",
+      "style": {
+        "navigationBarTitleText": "我的订单",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/stall/confirm-order",
+      "style": {
+        "navigationBarTitleText": "确认下单"
+      }
+    },
+    {
+      "path": "pages/stall/order-success",
+      "style": {
+        "navigationBarTitleText": "下单成功"
+      }
+    },
+    {
+      "path": "pages/vendor/index",
+      "style": {
+        "navigationBarTitleText": "摊主模式"
+      }
+    },
+    {
+      "path": "pages/public/login",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/public/register",
+      "style": {
+        "navigationBarTitleText": "注册",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/set/set",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
+    },
+    {
+      "path": "pages/product/product",
+      "style": {
+        "navigationBarTitleText": "详情展示",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/product/list",
+      "style": {
+        "navigationBarTitleText": "商品列表",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/product/search",
+      "style": {
+        "navigationBarTitleText": "搜索"
+      }
+    },
+    {
+      "path": "pages/order/orderDetail",
+      "style": {
+        "navigationBarTitleText": "订单详情"
+      }
+    },
+    {
+      "path": "pages/notice/notice",
+      "style": {
+        "navigationBarTitleText": "消息通知"
+      }
+    },
+    {
+      "path": "pages/user/user",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "enablePullDownRefresh": true,
+        "onReachBottomDistance": 100,
+        "app-plus": {
+          "titleNView": {
+            "buttons": [
+              {
+                "text": " ",
+                "fontSrc": "/static/yticon.ttf",
+                "redDot": false
+              },
+              {
+                "text": "",
+                "fontSrc": "/static/yticon.ttf",
+                "redDot": false
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "老王烤肠",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#f8f8f8"
+  },
+  "tabBar": {
+    "color": "#8A7A6D",
+    "selectedColor": "#C23A22",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "static/tab-home.png",
+        "selectedIconPath": "static/tab-home-current.png",
+        "text": "今日菜单"
+      },
+      {
+        "pagePath": "pages/order/order",
+        "iconPath": "static/tab-cate.png",
+        "selectedIconPath": "static/tab-cate-current.png",
+        "text": "我的订单"
+      },
+      {
+        "pagePath": "pages/user/user",
+        "iconPath": "static/tab-my.png",
+        "selectedIconPath": "static/tab-my-current.png",
+        "text": "我的"
+      }
+    ]
+  }
+}
