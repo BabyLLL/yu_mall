@@ -3,6 +3,7 @@ package com.macro.mall.portal.service;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.model.PmsProduct;
 import com.macro.mall.portal.domain.OmsOrderDetail;
+import com.macro.mall.portal.domain.StallTodayStats;
 
 import java.util.List;
 
@@ -16,6 +17,11 @@ public interface StallVendorService {
      * 全部商品（含已隐藏），供摊主开关操作
      */
     List<PmsProduct> listAllProducts();
+
+    /**
+     * 今日战绩统计（实收口径：今日创建且状态为已付款/制作中/待取货/已完成）
+     */
+    StallTodayStats todayStats();
 
     /**
      * 更新商品上架状态：0->隐藏；1->上架

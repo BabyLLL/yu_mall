@@ -1488,9 +1488,9 @@ page {
     height: 76rpx;
     border-radius: 100px;
     overflow: hidden;
-    box-shadow: 0 20rpx 40rpx -16rpx #fa436a;
+    box-shadow: 0 20rpx 40rpx -16rpx #d9622b;
     box-shadow: 1px 2px 5px rgba(219, 63, 96, 0.4);
-    background: linear-gradient(to right, #ffac30, #fa436a, #f56c6c);
+    background: linear-gradient(to right, #ffac30, #d9622b, #f56c6c);
     margin-left: 20rpx;
     position: relative;
 

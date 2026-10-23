@@ -183,6 +183,23 @@ public class UmsMemberServiceImpl implements UmsMemberService {
     }
 
     @Override
+    public UmsMember updateInfo(Long memberId, String nickname) {
+        if (nickname == null || nickname.trim().isEmpty()) {
+            Asserts.fail("昵称不能为空");
+        }
+        String trimmed = nickname.trim();
+        if (trimmed.length() > 64) {
+            Asserts.fail("昵称长度不能超过64个字符");
+        }
+        UmsMember record = new UmsMember();
+        record.setId(memberId);
+        record.setNickname(trimmed);
+        memberMapper.updateByPrimaryKeySelective(record);
+        memberCacheService.delMember(memberId);
+        return memberMapper.selectByPrimaryKey(memberId);
+    }
+
+    @Override
     public UserDetails loadUserByUsername(String username) {
         UmsMember member = getByUsername(username);
         if(member!=null){

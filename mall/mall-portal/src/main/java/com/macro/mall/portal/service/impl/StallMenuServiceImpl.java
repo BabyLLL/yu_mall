@@ -32,27 +32,25 @@ public class StallMenuServiceImpl implements StallMenuService {
         example.createCriteria().andPublishStatusEqualTo(1).andDeleteStatusEqualTo(0);
         example.setOrderByClause("sort desc, id desc");
         List<PmsProduct> productList = productMapper.selectByExample(example);
-        //过滤售罄商品：真实库存（stock-lock_stock）<=0 视为售罄
+        //真实剩余库存（stock-lock_stock）覆写返回值：售罄商品不再过滤，由前端以售罄样式展示
         List<PmsProduct> result = new ArrayList<>();
         for (PmsProduct product : productList) {
-            if (isSoldOut(product)) {
-                continue;
-            }
+            product.setStock(realStock(product));
             result.add(product);
         }
         return result;
     }
 
-    private boolean isSoldOut(PmsProduct product) {
+    private int realStock(PmsProduct product) {
         PmsSkuStockExample skuExample = new PmsSkuStockExample();
         skuExample.createCriteria().andProductIdEqualTo(product.getId());
         List<PmsSkuStock> skuList = skuStockMapper.selectByExample(skuExample);
         if (CollUtil.isEmpty(skuList)) {
-            //无SKU时按商品库存判断
-            return product.getStock() == null || product.getStock() <= 0;
+            //无SKU时按商品库存
+            return product.getStock() == null ? 0 : product.getStock();
         }
         //摊位商品取第一个SKU的真实库存
         PmsSkuStock sku = skuList.get(0);
-        return sku.getStock() - sku.getLockStock() <= 0;
+        return sku.getStock() - sku.getLockStock();
     }
 }

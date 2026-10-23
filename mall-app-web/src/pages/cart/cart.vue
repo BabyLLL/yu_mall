@@ -298,7 +298,7 @@ const calcTotal = () => {
       color: #c0c4cc;
 
       .navigator {
-        color: #fa436a;
+        color: #d9622b;
         margin-left: 16rpx;
       }
     }
@@ -444,13 +444,13 @@ const calcTotal = () => {
     height: 76rpx;
     line-height: 76rpx;
     font-size: 30rpx;
-    background: #fa436a;
+    background: #d9622b;
     box-shadow: 1px 2px 5px rgba(217, 60, 93, 0.72);
   }
 }
 
 .action-section .checkbox.checked,
 .cart-item .checkbox.checked {
-  color: #fa436a;
+  color: #d9622b;
 }
 </style>

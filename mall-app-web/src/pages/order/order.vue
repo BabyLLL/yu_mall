@@ -91,6 +91,7 @@
 import { computed, ref } from 'vue'
 import { onHide, onLoad, onPullDownRefresh, onShow, onUnload } from '@dcloudio/uni-app'
 import { formatDate } from '@/utils/date'
+import { applyTabBarVisibility } from '@/utils/tab-bar-visibility'
 import { cancelStallOrderAPI, getStallOrderListAPI } from '@/apis/stall'
 import { useOrderTabStore } from '@/stores/order-tab'
 import { STALL_ORDER_STATUS, STALL_ORDER_STATUS_TEXT } from '@/types/stall'
@@ -244,6 +245,7 @@ onLoad((options) => {
 
 // 页面显示时刷新（从摊主模式切回、下单完成、从"我的"页跳转等场景），并按需启动轮询
 onShow(async () => {
+  applyTabBarVisibility()
   applyPendingTab()
   await loadData('refresh')
   syncPolling()

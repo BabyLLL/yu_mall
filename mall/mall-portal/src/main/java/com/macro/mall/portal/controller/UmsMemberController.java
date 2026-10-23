@@ -193,6 +193,17 @@ public class UmsMemberController {
         return CommonResult.success(member);
     }
 
+    @Operation(summary = "修改当前会员昵称")
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    @ResponseBody
+    public CommonResult<UmsMember> update(Principal principal, @RequestParam String nickname) {
+        if (principal == null) {
+            return CommonResult.unauthorized(null);
+        }
+        UmsMember member = memberService.getCurrentMember();
+        return CommonResult.success(memberService.updateInfo(member.getId(), nickname), "昵称修改成功");
+    }
+
     @Operation(summary = "获取验证码")
     @RequestMapping(value = "/getAuthCode", method = RequestMethod.GET)
     @ResponseBody

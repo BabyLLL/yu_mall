@@ -66,3 +66,19 @@ export type StallOrder = {
   pickupCode: string
   orderItemList: OmsOrderItem[]
 }
+
+/** 今日战绩统计（实收口径） */
+export type VendorTodayStats = {
+  /** 今日实收总额 */
+  totalAmount: number
+  /** 今日订单数 */
+  orderCount: number
+  /** 按商品聚合的销售明细（金额降序） */
+  items: VendorTodayStatsItem[]
+}
+
+export type VendorTodayStatsItem = {
+  productName: string
+  quantity: number
+  amount: number
+}

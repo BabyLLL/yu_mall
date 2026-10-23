@@ -1,49 +1,13 @@
 <template>
   <view class="container">
     <view
+      v-if="!memberStore.isAdmin"
       class="list-cell b-b"
-      @click="navTo('个人资料')"
+      @click="navTo('/pages/user/profile')"
       hover-class="cell-hover"
       :hover-stay-time="50"
     >
       <text class="cell-tit">个人资料</text>
-      <text class="cell-more yticon icon-you"></text>
-    </view>
-    <view
-      class="list-cell"
-      @click="navTo('实名认证')"
-      hover-class="cell-hover"
-      :hover-stay-time="50"
-    >
-      <text class="cell-tit">实名认证</text>
-      <text class="cell-more yticon icon-you"></text>
-    </view>
-
-    <view class="list-cell m-t">
-      <text class="cell-tit">消息推送</text>
-      <switch checked color="#fa436a" @change="switchChange" />
-    </view>
-    <view
-      class="list-cell m-t b-b"
-      @click="navTo('清除缓存')"
-      hover-class="cell-hover"
-      :hover-stay-time="50"
-    >
-      <text class="cell-tit">清除缓存</text>
-      <text class="cell-more yticon icon-you"></text>
-    </view>
-    <view
-      class="list-cell b-b"
-      @click="navToOuter('https://github.com/macrozheng/mall')"
-      hover-class="cell-hover"
-      :hover-stay-time="50"
-    >
-      <text class="cell-tit">关于 mall-app-web</text>
-      <text class="cell-more yticon icon-you"></text>
-    </view>
-    <view class="list-cell">
-      <text class="cell-tit">检查更新</text>
-      <text class="cell-tip">当前版本 1.0.0</text>
       <text class="cell-more yticon icon-you"></text>
     </view>
     <view class="list-cell log-out-btn" @click="toLogout">
@@ -80,63 +44,28 @@ const toLogout = () => {
 
 // 页面内导航
 const navTo = (url: string) => {
-  if (url.includes('pages')) {
-    uni.navigateTo({
-      url: url,
-    })
-  } else {
-    uni.showToast({
-      title: `跳转到${url}`,
-      icon: 'none',
-    })
-  }
-}
-
-// 外部链接导航
-const navToOuter = (url: string) => {
-  // #ifdef H5
-  window.location.href = url
-  // #endif
-  // #ifdef APP-PLUS
-  plus.runtime.openURL(url)
-  // #endif
-  // #ifdef MP
-  uni.setClipboardData({
-    data: url,
-    success: () => {
-      uni.showToast({
-        title: '链接已复制到剪贴板',
-        icon: 'none',
-      })
-    },
-  })
-  // #endif
-}
-
-// 消息推送开关
-const switchChange = (e: any) => {
-  const statusTip = e.detail.value ? '打开' : '关闭'
-  uni.showToast({
-    title: `${statusTip}消息推送`,
-    icon: 'none',
+  uni.navigateTo({
+    url: url,
   })
 }
 </script>
 
 <style lang="scss">
 page {
-  background: $page-color-base;
+  background: #fff9f0;
 }
+</style>
+
+<style lang="scss" scoped>
 .list-cell {
   display: flex;
   align-items: baseline;
-  padding: 20upx $page-row-spacing;
-  line-height: 60upx;
+  padding: 24rpx $page-row-spacing;
+  line-height: 60rpx;
   position: relative;
   background: #fff;
-  justify-content: center;
   &.log-out-btn {
-    margin-top: 40upx;
+    margin-top: 24rpx;
     .cell-tit {
       color: $uni-color-primary;
       text-align: center;
@@ -144,32 +73,22 @@ page {
     }
   }
   &.cell-hover {
-    background: #fafafa;
+    background: #faf6f0;
   }
   &.b-b:after {
-    left: 30upx;
-  }
-  &.m-t {
-    margin-top: 16upx;
+    left: 30rpx;
   }
   .cell-more {
     align-self: baseline;
     font-size: $font-lg;
     color: $font-color-light;
-    margin-left: 10upx;
+    margin-left: 10rpx;
   }
   .cell-tit {
     flex: 1;
     font-size: $font-base + 2rpx;
     color: $font-color-dark;
-    margin-right: 10upx;
-  }
-  .cell-tip {
-    font-size: $font-base;
-    color: $font-color-light;
-  }
-  switch {
-    transform: translateX(16upx) scale(0.84);
+    margin-right: 10rpx;
   }
 }
 </style>

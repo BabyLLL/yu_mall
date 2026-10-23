@@ -5,6 +5,7 @@ import com.macro.mall.mapper.PmsProductMapper;
 import com.macro.mall.model.PmsProduct;
 import com.macro.mall.model.PmsProductExample;
 import com.macro.mall.portal.domain.StallOrderConsts;
+import com.macro.mall.portal.domain.StallTodayStats;
 import com.macro.mall.portal.service.StallVendorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +41,14 @@ public class StallVendorController {
     @ResponseBody
     public CommonResult<List<PmsProduct>> products() {
         return CommonResult.success(stallVendorService.listAllProducts());
+    }
+
+    @Operation(summary = "今日战绩统计（实收口径）")
+    @PreAuthorize("hasAuthority('MINIAPP_ADMIN')")
+    @RequestMapping(value = "/todayStats", method = RequestMethod.GET)
+    @ResponseBody
+    public CommonResult<StallTodayStats> todayStats() {
+        return CommonResult.success(stallVendorService.todayStats());
     }
 
     @Operation(summary = "隐藏商品")

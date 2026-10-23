@@ -67,7 +67,7 @@ onLoad((options: any) => {
 
 .success-icon {
   font-size: 160rpx;
-  color: #fa436a;
+  color: #d9622b;
   margin-top: 100rpx;
 }
 

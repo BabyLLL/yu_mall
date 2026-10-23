@@ -2,29 +2,39 @@ package com.macro.mall.portal.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import com.github.pagehelper.PageHelper;
 import com.macro.mall.common.api.CommonPage;
 import com.macro.mall.common.exception.Asserts;
 import com.macro.mall.mapper.OmsOrderItemMapper;
 import com.macro.mall.mapper.OmsOrderMapper;
 import com.macro.mall.mapper.PmsProductMapper;
+import com.macro.mall.mapper.PmsSkuStockMapper;
 import com.macro.mall.model.OmsOrder;
 import com.macro.mall.model.OmsOrderItem;
 import com.macro.mall.model.OmsOrderItemExample;
 import com.macro.mall.model.OmsOrderExample;
 import com.macro.mall.model.PmsProduct;
 import com.macro.mall.model.PmsProductExample;
+import com.macro.mall.model.PmsSkuStock;
+import com.macro.mall.model.PmsSkuStockExample;
 import com.macro.mall.portal.dao.PortalOrderDao;
 import com.macro.mall.portal.domain.OmsOrderDetail;
 import com.macro.mall.portal.domain.StallOrderConsts;
+import com.macro.mall.portal.domain.StallTodayStats;
 import com.macro.mall.portal.service.StallVendorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,6 +48,8 @@ public class StallVendorServiceImpl implements StallVendorService {
     @Autowired
     private PmsProductMapper productMapper;
     @Autowired
+    private PmsSkuStockMapper skuStockMapper;
+    @Autowired
     private OmsOrderMapper orderMapper;
     @Autowired
     private OmsOrderItemMapper orderItemMapper;
@@ -50,7 +62,84 @@ public class StallVendorServiceImpl implements StallVendorService {
         //含已隐藏商品：只排除已删除
         example.createCriteria().andDeleteStatusEqualTo(0);
         example.setOrderByClause("sort desc, id desc");
-        return productMapper.selectByExample(example);
+        List<PmsProduct> productList = productMapper.selectByExample(example);
+        //真实剩余库存（stock-lock_stock）覆写返回值：与顾客菜单接口同口径
+        for (PmsProduct product : productList) {
+            product.setStock(realStock(product));
+        }
+        return productList;
+    }
+
+    private int realStock(PmsProduct product) {
+        PmsSkuStockExample skuExample = new PmsSkuStockExample();
+        skuExample.createCriteria().andProductIdEqualTo(product.getId());
+        List<PmsSkuStock> skuList = skuStockMapper.selectByExample(skuExample);
+        if (CollUtil.isEmpty(skuList)) {
+            //无SKU时按商品库存
+            return product.getStock() == null ? 0 : product.getStock();
+        }
+        //摊位商品取第一个SKU的真实库存
+        PmsSkuStock sku = skuList.get(0);
+        return sku.getStock() - sku.getLockStock();
+    }
+
+    @Override
+    public StallTodayStats todayStats() {
+        //实收口径：今日创建且状态为已付款/制作中/待取货/已完成
+        OmsOrderExample orderExample = new OmsOrderExample();
+        orderExample.createCriteria()
+                .andDeleteStatusEqualTo(0)
+                .andOrderTypeEqualTo(StallOrderConsts.ORDER_TYPE_STALL)
+                .andCreateTimeGreaterThanOrEqualTo(DateUtil.beginOfDay(new Date()))
+                .andStatusIn(Arrays.asList(
+                        StallOrderConsts.STATUS_PAID,
+                        StallOrderConsts.STATUS_MAKING,
+                        StallOrderConsts.STATUS_READY,
+                        StallOrderConsts.STATUS_FINISHED));
+        List<OmsOrder> orderList = orderMapper.selectByExample(orderExample);
+
+        StallTodayStats stats = new StallTodayStats();
+        stats.setOrderCount((long) orderList.size());
+        BigDecimal totalAmount = new BigDecimal(0);
+        for (OmsOrder order : orderList) {
+            if (order.getPayAmount() != null) {
+                totalAmount = totalAmount.add(order.getPayAmount());
+            }
+        }
+        stats.setTotalAmount(totalAmount);
+        if (CollUtil.isEmpty(orderList)) {
+            stats.setItems(new ArrayList<>());
+            return stats;
+        }
+        List<Long> orderIds = orderList.stream().map(OmsOrder::getId).collect(Collectors.toList());
+        OmsOrderItemExample itemExample = new OmsOrderItemExample();
+        itemExample.createCriteria().andOrderIdIn(orderIds);
+        List<OmsOrderItem> orderItemList = orderItemMapper.selectByExample(itemExample);
+        //按商品名分组聚合数量与金额
+        Map<String, StallTodayStats.Item> itemMap = new LinkedHashMap<>();
+        for (OmsOrderItem orderItem : orderItemList) {
+            String name = orderItem.getProductName();
+            if (name == null) {
+                continue;
+            }
+            StallTodayStats.Item item = itemMap.computeIfAbsent(name, key -> {
+                StallTodayStats.Item newItem = new StallTodayStats.Item();
+                newItem.setProductName(key);
+                newItem.setQuantity(0);
+                newItem.setAmount(new BigDecimal(0));
+                return newItem;
+            });
+            if (orderItem.getProductQuantity() != null) {
+                item.setQuantity(item.getQuantity() + orderItem.getProductQuantity());
+            }
+            if (orderItem.getRealAmount() != null) {
+                item.setAmount(item.getAmount().add(orderItem.getRealAmount()));
+            }
+        }
+        List<StallTodayStats.Item> items = new ArrayList<>(itemMap.values());
+        items.sort(Comparator.comparing(StallTodayStats.Item::getAmount).reversed());
+        stats.setItems(items);
+        return stats;
     }
 
     @Override

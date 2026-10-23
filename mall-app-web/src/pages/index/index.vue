@@ -1,11 +1,17 @@
 <template>
   <view class="container">
-    <!-- 摊位头部 -->
-    <view class="stall-header">
-      <view class="stall-title-box">
-        <text class="stall-name">老王烤肠</text>
-        <text class="stall-sub">现烤现卖 · 到摊自取</text>
+    <!-- 待取货提醒（取货叫号小票） -->
+    <view v-if="readyNotice" class="pickup-ticket" @click="handleGoOrders">
+      <view class="ticket-main">
+        <view class="ticket-badge">
+          <text class="ticket-badge-text">取货</text>
+        </view>
+        <view class="ticket-info">
+          <text class="ticket-title">您有 {{ readyNotice.total }} 单待取货</text>
+          <text class="ticket-code">取货码 {{ readyNotice.pickupCode }}</text>
+        </view>
       </view>
+      <text class="ticket-arrow">›</text>
     </view>
 
     <!-- 今日菜单 -->
@@ -30,7 +36,11 @@
                 <text class="price-symbol">¥</text>
                 <text class="menu-price">{{ item.price }}</text>
               </view>
-              <view class="add-btn" @click.stop="handleAdd(item)">
+              <text v-if="item.stock > 0" class="stock-tag">仅剩 {{ item.stock }} 份</text>
+              <view v-else class="sold-out-chip">
+                <text class="sold-out-chip-text">售罄</text>
+              </view>
+              <view v-if="item.stock > 0" class="add-btn" @click.stop="handleAdd(item)">
                 <text class="add-icon">+</text>
               </view>
             </view>
@@ -89,9 +99,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
-import { getStallMenuAPI } from '@/apis/stall'
+import { onShow, onHide, onUnload, onPullDownRefresh } from '@dcloudio/uni-app'
+import { getStallMenuAPI, getStallOrderListAPI } from '@/apis/stall'
 import { useStallCartStore } from '@/stores/stallCart'
+import { readAuthSession } from '@/utils/auth-session'
+import { applyTabBarVisibility } from '@/utils/tab-bar-visibility'
 import type { StallMenuItem } from '@/types/stall'
 
 const cartStore = useStallCartStore()
@@ -103,6 +115,8 @@ const menuList = ref<StallMenuItem[]>([])
 const loading = ref(true)
 // 已选弹层显示
 const showCart = ref(false)
+// 待取货提醒（null 表示不展示）
+const readyNotice = ref<{ total: number; pickupCode: string } | null>(null)
 
 // ===== 数据加载 =====
 // 加载今日菜单
@@ -119,14 +133,63 @@ const loadMenu = async () => {
   }
 }
 
-// 页面显示时刷新菜单（摊主可能刚改了菜单）
+// 加载待取货提醒：仅登录态查询，失败保留上次结果（提醒条不因一次失败闪烁消失）
+const loadReadyNotice = async () => {
+  const session = readAuthSession()
+  if (!session) {
+    readyNotice.value = null
+    return
+  }
+  try {
+    const res = await getStallOrderListAPI({ status: 3, pageNum: 1, pageSize: 1 })
+    const list = res.data?.list || []
+    const total = res.data?.total || 0
+    readyNotice.value =
+      total > 0 && list.length > 0 && list[0].pickupCode ? { total, pickupCode: list[0].pickupCode } : null
+  } catch (err) {
+    console.error('加载待取货提醒失败', err)
+  }
+}
+
+// 待取货提醒定时轮询：仅首页前台展示期间进行，切走即停
+const READY_POLL_INTERVAL = 30 * 1000
+let readyTimer: ReturnType<typeof setInterval> | null = null
+
+const stopReadyPolling = () => {
+  if (readyTimer) {
+    clearInterval(readyTimer)
+    readyTimer = null
+  }
+}
+
+const startReadyPolling = () => {
+  stopReadyPolling()
+  readyTimer = setInterval(loadReadyNotice, READY_POLL_INTERVAL)
+}
+
+// 页面显示时刷新（摊主可能刚改了菜单/出了新餐），并启动待取货轮询
 onShow(() => {
+  applyTabBarVisibility()
   loadMenu()
+  loadReadyNotice()
+  if (readAuthSession()) {
+    startReadyPolling()
+  }
+})
+
+// 页面切走/卸载时停止轮询
+onHide(() => {
+  stopReadyPolling()
+})
+
+onUnload(() => {
+  stopReadyPolling()
 })
 
 // 下拉刷新
 onPullDownRefresh(() => {
   loadMenu()
+  loadReadyNotice()
 })
 
 // ===== 事件处理 =====
@@ -161,54 +224,100 @@ const handleGoConfirm = () => {
     url: '/pages/stall/confirm-order',
   })
 }
+
+// 去我的订单查看取货码
+const handleGoOrders = () => {
+  uni.switchTab({
+    url: '/pages/order/order',
+  })
+}
 </script>
 
 <style lang="scss" scoped>
-/* 摊位配色：烤肠红棕 + 炭火暖金 */
-$stall-red: #c23a22;
-$stall-dark: #3d2b1f;
-$stall-gold: #f5a623;
-$stall-bg: #fdf8f2;
+/* 摊位配色：奶油暖色底 + 橙棕点缀 */
+$stall-accent: #d9622b;
+$stall-accent-deep: #b84f1f;
+$stall-bar: #4a3728;
+$stall-bg: #fff9f0;
+$stall-apricot: #ffe8cc;
+$stall-apricot-deep: #ffd9ad;
 $stall-card: #ffffff;
-$text-main: #3d2b1f;
-$text-sub: #8a7a6d;
+$text-main: #4a3728;
+$text-sub: #a08c7a;
 
 page {
   background: $stall-bg;
 }
 
 .container {
-  padding-bottom: 140rpx;
+  padding: 24rpx 24rpx 140rpx;
 }
 
-/* 摊位头部 */
-.stall-header {
-  padding: 48rpx 32rpx 24rpx;
-  background: linear-gradient(160deg, $stall-red 0%, #a52a15 100%);
-  border-radius: 0 0 40rpx 40rpx;
+/* 待取货提醒：取货叫号小票 */
+.pickup-ticket {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+  padding: 24rpx 28rpx;
+  background: linear-gradient(135deg, $stall-apricot 0%, $stall-apricot-deep 100%);
+  border-radius: 20rpx;
+  border: 2rpx dashed rgba(217, 98, 43, 0.45);
+  box-shadow: 0 4rpx 16rpx rgba(74, 55, 40, 0.06);
 
-  .stall-title-box {
+  .ticket-main {
+    display: flex;
+    align-items: center;
+  }
+
+  .ticket-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72rpx;
+    height: 72rpx;
+    margin-right: 24rpx;
+    background: $stall-accent;
+    border-radius: 16rpx;
+
+    .ticket-badge-text {
+      font-size: 26rpx;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 2rpx;
+    }
+  }
+
+  .ticket-info {
     display: flex;
     flex-direction: column;
   }
 
-  .stall-name {
-    font-size: 52rpx;
-    font-weight: 700;
-    color: #ffffff;
-    letter-spacing: 4rpx;
+  .ticket-title {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: $text-main;
   }
 
-  .stall-sub {
-    margin-top: 10rpx;
-    font-size: 26rpx;
-    color: rgba(255, 255, 255, 0.85);
+  .ticket-code {
+    margin-top: 6rpx;
+    font-size: 34rpx;
+    font-weight: 700;
+    color: $stall-accent-deep;
+    letter-spacing: 2rpx;
+  }
+
+  .ticket-arrow {
+    font-size: 48rpx;
+    font-weight: 600;
+    color: $stall-accent-deep;
+    line-height: 48rpx;
   }
 }
 
 /* 菜单区 */
 .menu-section {
-  padding: 24rpx 24rpx 0;
+  padding: 0;
 }
 
 .menu-grid {
@@ -223,7 +332,7 @@ page {
   background: $stall-card;
   border-radius: 20rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(61, 43, 31, 0.06);
+  box-shadow: 0 4rpx 16rpx rgba(74, 55, 40, 0.06);
 
   &.sold-out {
     opacity: 0.72;
@@ -249,7 +358,7 @@ page {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(61, 43, 31, 0.45);
+    background: rgba(74, 55, 40, 0.45);
 
     .sold-out-text {
       padding: 8rpx 24rpx;
@@ -277,14 +386,13 @@ page {
 .menu-bottom {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   margin-top: 8rpx;
 }
 
 .menu-price-box {
   display: flex;
   align-items: baseline;
-  color: $stall-red;
+  color: $stall-accent;
 
   .price-symbol {
     font-size: 24rpx;
@@ -297,13 +405,38 @@ page {
   }
 }
 
+/* 剩余数量标签 */
+.stock-tag {
+  flex: 1;
+  margin-left: 12rpx;
+  font-size: 22rpx;
+  color: $text-sub;
+}
+
+/* 售罄角标（无加单按钮时的占位） */
+.sold-out-chip {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  margin-left: 12rpx;
+
+  .sold-out-chip-text {
+    padding: 4rpx 16rpx;
+    font-size: 22rpx;
+    color: $text-sub;
+    border: 2rpx solid $text-sub;
+    border-radius: 999rpx;
+  }
+}
+
 .add-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 56rpx;
   height: 56rpx;
-  background: $stall-red;
+  margin-left: auto;
+  background: $stall-accent;
   border-radius: 50%;
 
   .add-icon {
@@ -337,9 +470,9 @@ page {
   justify-content: space-between;
   height: 104rpx;
   padding: 0 12rpx 0 32rpx;
-  background: $stall-dark;
+  background: $stall-bar;
   border-radius: 52rpx;
-  box-shadow: 0 8rpx 24rpx rgba(61, 43, 31, 0.35);
+  box-shadow: 0 8rpx 24rpx rgba(74, 55, 40, 0.35);
 
   .cart-bar-left {
     position: relative;
@@ -358,11 +491,11 @@ page {
     align-items: center;
     justify-content: center;
     padding: 0 10rpx;
-    background: $stall-gold;
+    background: $stall-apricot-deep;
     border-radius: 18rpx;
     font-size: 22rpx;
     font-weight: 700;
-    color: $stall-dark;
+    color: $stall-bar;
   }
 
   .cart-bar-info {
@@ -387,7 +520,7 @@ page {
     justify-content: center;
     width: 200rpx;
     height: 80rpx;
-    background: $stall-red;
+    background: $stall-accent;
     border-radius: 40rpx;
     font-size: 30rpx;
     font-weight: 600;
@@ -428,7 +561,7 @@ page {
     align-items: center;
     justify-content: space-between;
     padding: 32rpx 32rpx 20rpx;
-    border-bottom: 1rpx solid #f0e9e1;
+    border-bottom: 1rpx solid #f5ead9;
 
     .cart-popup-title {
       font-size: 32rpx;
@@ -452,7 +585,7 @@ page {
     align-items: center;
     justify-content: space-between;
     padding: 24rpx 0;
-    border-bottom: 1rpx solid #f7f2ec;
+    border-bottom: 1rpx solid #faf4ea;
 
     .cart-popup-name {
       flex: 1;
@@ -469,7 +602,7 @@ page {
       margin-right: 24rpx;
       font-size: 28rpx;
       font-weight: 600;
-      color: $stall-red;
+      color: $stall-accent;
     }
 
     .quantity-ctrl {
@@ -482,13 +615,13 @@ page {
         justify-content: center;
         width: 48rpx;
         height: 48rpx;
-        border: 2rpx solid $stall-red;
+        border: 2rpx solid $stall-accent;
         border-radius: 50%;
         font-size: 30rpx;
-        color: $stall-red;
+        color: $stall-accent;
 
         &.qty-btn-add {
-          background: $stall-red;
+          background: $stall-accent;
           color: #ffffff;
         }
       }

@@ -9,10 +9,10 @@
     {
       "path": "pages/index/index",
       "style": {
-        "navigationBarTitleText": "老王烤肠",
-        "navigationBarBackgroundColor": "#C23A22",
-        "navigationBarTextStyle": "white",
-        "backgroundColor": "#FDF8F2",
+        "navigationBarTitleText": "今日菜单",
+        "navigationBarBackgroundColor": "#FFE8CC",
+        "navigationBarTextStyle": "black",
+        "backgroundColor": "#FFF9F0",
         "enablePullDownRefresh": true
       }
     },
@@ -42,6 +42,13 @@
       }
     },
     {
+      "path": "pages/vendor/sales",
+      "style": {
+        "navigationBarTitleText": "今日战绩",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
       "path": "pages/public/login",
       "style": {
         "navigationBarTitleText": "登录",
@@ -59,6 +66,12 @@
       "path": "pages/set/set",
       "style": {
         "navigationBarTitleText": "设置"
+      }
+    },
+    {
+      "path": "pages/user/profile",
+      "style": {
+        "navigationBarTitleText": "个人资料"
       }
     },
     {
@@ -120,13 +133,13 @@
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "老王烤肠",
+    "navigationBarTitleText": "今日菜单",
     "navigationBarBackgroundColor": "#FFFFFF",
-    "backgroundColor": "#f8f8f8"
+    "backgroundColor": "#FFF9F0"
   },
   "tabBar": {
-    "color": "#8A7A6D",
-    "selectedColor": "#C23A22",
+    "color": "#A08C7A",
+    "selectedColor": "#D9622B",
     "borderStyle": "black",
     "backgroundColor": "#ffffff",
     "list": [

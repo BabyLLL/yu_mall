@@ -46,6 +46,11 @@ public interface UmsMemberService {
      */
     void updateIntegration(Long id,Integer integration);
 
+    /**
+     * 修改会员昵称并返回更新后的会员信息
+     */
+    UmsMember updateInfo(Long memberId, String nickname);
+
 
     /**
      * 获取用户信息

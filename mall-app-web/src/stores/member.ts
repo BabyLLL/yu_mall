@@ -1,7 +1,7 @@
 import type { AdminInfo, AuthSession, AuthType, MemberInfo } from '@/types/member'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { adminLoginAPI, miniappLogoutAPI, wechatLoginAPI } from '@/apis/member'
+import { adminLoginAPI, miniappLogoutAPI, updateMemberInfoAPI, wechatLoginAPI } from '@/apis/member'
 import {
   getMiniappClientId,
   readAuthSession,
@@ -90,6 +90,17 @@ export const useMemberStore = defineStore('member', () => {
     })
   }
 
+  /** 修改当前会员昵称，成功后同步本地会话中的会员资料 */
+  const updateMemberProfile = async (nickname: string) => {
+    if (authSession.value?.type !== 'member') throw new Error('not-member-session')
+    const res = await updateMemberInfoAPI({ nickname })
+    const info = res.data
+    const session: AuthSession = { ...authSession.value, profile: info }
+    authSession.value = session
+    memberInfo.value = info
+    writeAuthSession(session)
+  }
+
   const memberLogout = async () => {
     if (!authSession.value) return
     try {
@@ -117,6 +128,7 @@ export const useMemberStore = defineStore('member', () => {
     isAdmin,
     wechatLogin,
     adminLogin,
+    updateMemberProfile,
     clearSession,
     memberLogout,
     getClientId: getMiniappClientId,

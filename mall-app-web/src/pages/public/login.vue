@@ -54,10 +54,10 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onReady } from '@dcloudio/uni-app'
 import { useMemberStore } from '@/stores/member'
 import WechatAuthSheet from '@/components/wechat-auth-sheet.vue'
-import { requestWechatAuthorization } from '@/utils/wechat-auth'
+import { showWechatAuthSheet } from '@/utils/wechat-auth'
 
 const memberStore = useMemberStore()
 const mode = ref<'member' | 'admin'>('member')
@@ -79,14 +79,20 @@ onLoad((query) => {
       const pages = getCurrentPages()
       if (pages.length > 1) uni.navigateBack()
     }, 500)
-    return
   }
-  if (mode.value === 'member') setTimeout(openWechatSheet, 0)
+})
+
+// onReady 时页内 WechatAuthSheet 必已挂载，直接开弹层，避免走导航兜底造成登录页叠栈
+onReady(() => {
+  if (mode.value === 'member' && !memberStore.hasSession) {
+    showWechatAuthSheet(finishLogin)
+  }
 })
 
 const finishLogin = () => {
-  if (redirect.value) {
-    const target = redirect.value.startsWith('/') ? redirect.value : '/pages/index/index'
+  // 回跳目标过滤登录页自身（防御：正常路径经守卫后不会再出现）
+  const target = redirect.value !== '/pages/public/login' ? redirect.value : ''
+  if (target) {
     // tabBar 页走 switchTab（user 页为 tabBar 第三项；redirectTo 到 tab 页会失败）
     const tabPages = ['/pages/index/index', '/pages/order/order', '/pages/user/user']
     if (tabPages.includes(target)) {
@@ -101,7 +107,7 @@ const finishLogin = () => {
 }
 
 const openWechatSheet = () => {
-  requestWechatAuthorization(finishLogin)
+  showWechatAuthSheet(finishLogin)
 }
 
 const toAdminLogin = async () => {
@@ -188,13 +194,13 @@ page {
   height: 16rpx;
   margin-right: 12rpx;
   border-radius: 50%;
-  background: #fa436a;
+  background: #d9622b;
   box-shadow: 10rpx 0 0 #ffb35c;
 }
 .eyebrow {
   display: block;
   margin-top: 76rpx;
-  color: #fa436a;
+  color: #d9622b;
   font-size: 22rpx;
 }
 .title {
@@ -261,7 +267,7 @@ page {
   height: 88rpx;
   margin-top: 34rpx;
   border-radius: 18rpx;
-  background: #fa436a;
+  background: #d9622b;
   color: #fff;
   font-size: 30rpx;
   font-weight: 600;

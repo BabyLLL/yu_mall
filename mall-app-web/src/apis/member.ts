@@ -48,6 +48,15 @@ export const getMemberInfoAPI = () => {
   })
 }
 
+/** 修改当前会员昵称 */
+export const updateMemberInfoAPI = (data: { nickname: string }) => {
+  return http<MemberInfo>({
+    method: 'POST',
+    url: '/sso/update',
+    params: { nickname: data.nickname },
+  })
+}
+
 /** 注册 */
 export const registerAPI = (data: RegisterParam) => {
   return http({

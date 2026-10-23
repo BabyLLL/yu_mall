@@ -1,5 +1,5 @@
 import { http } from '@/utils/http'
-import type { StallOrder, StallOrderParam, StallMenuItem } from '@/types/stall'
+import type { StallOrder, StallOrderParam, StallMenuItem, VendorTodayStats } from '@/types/stall'
 import type { CommonPage } from '@/types/common'
 
 /** 今日菜单（白名单，无需登录） */
@@ -76,6 +76,14 @@ export const getVendorOrdersAPI = (params: { status?: number; pageNum?: number; 
       pageNum: params.pageNum ?? 1,
       pageSize: params.pageSize ?? 50,
     },
+  })
+}
+
+/** 今日战绩统计（实收口径） */
+export const getVendorTodayStatsAPI = () => {
+  return http<VendorTodayStats>({
+    method: 'GET',
+    url: '/stall/vendor/todayStats',
   })
 }
 

@@ -6,8 +6,16 @@
         <text class="vendor-title">摊主模式</text>
         <text class="vendor-sub">{{ adminInfo?.username || '已登录摊主' }}</text>
       </view>
-      <view class="logout-btn" @click="handleLogout">
-        <text>退出</text>
+      <view class="logout-row">
+        <view class="sales-btn" @click="handleNavToSales">
+          <text>今日战绩</text>
+        </view>
+        <view class="mine-btn" @click="handleNavToMine">
+          <text>我的</text>
+        </view>
+        <view class="logout-btn" @click="handleLogout">
+          <text>退出</text>
+        </view>
       </view>
     </view>
 
@@ -35,7 +43,11 @@
         <image class="product-pic" :src="item.pic" mode="aspectFill" />
         <view class="product-info">
           <text class="product-name clamp">{{ item.name }}</text>
-          <text class="product-price">¥{{ item.price }}</text>
+          <view class="product-meta">
+            <text class="product-price">¥{{ item.price }}</text>
+            <text v-if="item.stock > 0" class="product-stock">剩余 {{ item.stock }}</text>
+            <text v-else class="product-stock sold-out">售罄</text>
+          </view>
         </view>
         <switch
           :checked="item.publishStatus === 1"
@@ -129,6 +141,7 @@
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useMemberStore } from '@/stores/member'
+import { applyTabBarVisibility } from '@/utils/tab-bar-visibility'
 import {
   cancelVendorOrderAPI,
   confirmPayAPI,
@@ -186,6 +199,7 @@ const loadOrders = async () => {
 }
 
 onShow(() => {
+  applyTabBarVisibility()
   if (segment.value === 'products') {
     loadProducts()
   } else {
@@ -270,9 +284,18 @@ const handleCancelOrder = (orderId: number) => {
   })
 }
 
+// 进入今日战绩页
+const handleNavToSales = () => {
+  uni.navigateTo({ url: '/pages/vendor/sales' })
+}
+
+// 返回「我的」页（tabBar 保持隐藏直至退出摊主）
+const handleNavToMine = () => {
+  uni.switchTab({ url: '/pages/user/user' })
+}
+
 // 退出摊主模式
-const handleLogout = () => {
-  uni.showModal({
+const handleLogout = () => {  uni.showModal({
     title: '提示',
     content: '退出摊主模式？',
     success: async (res) => {
@@ -336,6 +359,28 @@ page {
     margin-top: 6rpx;
     font-size: 24rpx;
     color: rgba(255, 255, 255, 0.6);
+  }
+
+  .logout-row {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+  }
+
+  .sales-btn {
+    padding: 10rpx 32rpx;
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 32rpx;
+    font-size: 26rpx;
+    color: #ffffff;
+  }
+
+  .mine-btn {
+    padding: 10rpx 32rpx;
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 32rpx;
+    font-size: 26rpx;
+    color: #ffffff;
   }
 
   .logout-btn {
@@ -402,10 +447,27 @@ page {
       margin-bottom: 6rpx;
     }
 
+    .product-meta {
+      display: flex;
+      align-items: center;
+      gap: 16rpx;
+    }
+
     .product-price {
       font-size: 26rpx;
       font-weight: 600;
       color: $stall-red;
+    }
+
+    .product-stock {
+      font-size: 22rpx;
+      color: $text-sub;
+
+      &.sold-out {
+        padding: 2rpx 14rpx;
+        border: 2rpx solid $text-sub;
+        border-radius: 999rpx;
+      }
     }
   }
 }

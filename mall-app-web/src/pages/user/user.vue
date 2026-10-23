@@ -1,7 +1,6 @@
 <template>
   <view class="container">
     <view class="user-section">
-      <image class="bg" src="/static/user-bg.jpg"></image>
       <!-- #ifdef MP -->
       <view class="mp-nav-btns">
         <text class="yticon icon-shezhi nav-btn" @click="handleNavTo('/pages/set/set')"></text>
@@ -27,8 +26,6 @@
       @touchmove="handleCoverTouchmove"
       @touchend="handleCoverTouchend"
     >
-      <image class="arc" src="/static/arc.png"></image>
-
       <!-- 订单 -->
       <view class="order-section">
         <view
@@ -54,7 +51,7 @@
       <view v-if="memberStore.isAdmin" class="history-section icon">
         <mix-list-cell
           icon="icon-shouye"
-          iconColor="#c23a22"
+          iconColor="#d9622b"
           title="摊主模式"
           border=""
           @eventClick="handleNavTo('/pages/vendor/index')"
@@ -64,7 +61,7 @@
       <view class="history-section icon">
         <mix-list-cell
           icon="icon-shezhi1"
-          iconColor="#e07472"
+          iconColor="#a08c7a"
           title="设置"
           border=""
           @eventClick="handleNavTo('/pages/set/set')"
@@ -83,6 +80,7 @@ import { useOrderTabStore } from '@/stores/order-tab'
 import mixListCell from '@/components/mix-list-cell.vue'
 import WechatAuthSheet from '@/components/wechat-auth-sheet.vue'
 import { requestWechatAuthorization } from '@/utils/wechat-auth'
+import { applyTabBarVisibility } from '@/utils/tab-bar-visibility'
 
 // ===== Store 相关 =====
 // 获取会员store
@@ -113,7 +111,9 @@ const pageAtTop = true
 
 // ===== 生命周期 =====
 // 页面显示时刷新状态
-onShow(() => {})
+onShow(() => {
+  applyTabBarVisibility()
+})
 
 // 导航栏按钮点击事件
 onNavigationBarButtonTap((e: { index: number }) => {
@@ -243,13 +243,21 @@ const handleCoverTouchend = () => {
   justify-content: space-around;
   align-content: center;
   background: #fff;
-  border-radius: 10rpx;
+  border-radius: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(74, 55, 40, 0.06);
 }
 
+/* 我的页配色：奶油暖底 + 杏色渐变头部 */
+$user-bg: #fff9f0;
+$user-apricot: #ffe8cc;
+$user-apricot-deep: #ffd9ad;
+$user-text-main: #4a3728;
+
 .user-section {
-  height: 520rpx;
+  height: 420rpx;
   padding: 100rpx 30rpx 0;
   position: relative;
+  background: linear-gradient(160deg, $user-apricot 0%, $user-apricot-deep 100%);
 
   .mp-nav-btns {
     position: absolute;
@@ -262,18 +270,8 @@ const handleCoverTouchend = () => {
 
     .nav-btn {
       font-size: 48rpx;
-      color: #fff;
+      color: $user-text-main;
     }
-  }
-
-  .bg {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    filter: blur(1px);
-    opacity: 0.7;
   }
 }
 
@@ -289,11 +287,13 @@ const handleCoverTouchend = () => {
     height: 130rpx;
     border: 5rpx solid #fff;
     border-radius: 50%;
+    box-shadow: 0 4rpx 12rpx rgba(74, 55, 40, 0.15);
   }
 
   .username {
     font-size: 38rpx;
-    color: #303133;
+    font-weight: 600;
+    color: $user-text-main;
     margin-left: 20rpx;
   }
 }
@@ -351,20 +351,11 @@ const handleCoverTouchend = () => {
 }
 
 .cover-container {
-  background: #f8f8f8;
-  margin-top: -150rpx;
-  padding: 0 30rpx;
+  background: $user-bg;
+  margin-top: -80rpx;
+  padding: 0 30rpx 20rpx;
   position: relative;
-  background: #f5f5f5;
-  padding-bottom: 20rpx;
-
-  .arc {
-    position: absolute;
-    left: 0;
-    top: -34rpx;
-    width: 100%;
-    height: 36rpx;
-  }
+  border-radius: 32rpx 32rpx 0 0;
 }
 
 .tj-sction {
@@ -402,7 +393,7 @@ const handleCoverTouchend = () => {
   .yticon {
     font-size: 48rpx;
     margin-bottom: 18rpx;
-    color: #fa436a;
+    color: #d9622b;
   }
 
   .icon-shouhoutuikuan {
