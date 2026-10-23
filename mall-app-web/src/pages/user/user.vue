@@ -26,8 +26,8 @@
       @touchmove="handleCoverTouchmove"
       @touchend="handleCoverTouchend"
     >
-      <!-- 订单 -->
-      <view class="order-section">
+      <!-- 订单（摊主会话下隐藏顾客订单入口） -->
+      <view v-if="!memberStore.isAdmin" class="order-section">
         <view
           class="order-item"
           @click="handleNavToOrder()"

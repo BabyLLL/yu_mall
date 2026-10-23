@@ -49,6 +49,18 @@
       }
     },
     {
+      "path": "pages/vendor/products",
+      "style": {
+        "navigationBarTitleText": "商品管理"
+      }
+    },
+    {
+      "path": "pages/vendor/orders",
+      "style": {
+        "navigationBarTitleText": "订单队列"
+      }
+    },
+    {
       "path": "pages/public/login",
       "style": {
         "navigationBarTitleText": "登录",
