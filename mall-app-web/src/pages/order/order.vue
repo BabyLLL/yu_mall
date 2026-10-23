@@ -24,7 +24,13 @@
           <empty v-if="orderList == null || orderList.length === 0"></empty>
 
           <!-- 订单列表 -->
-          <view v-for="(item, index) in orderList" :key="index" class="order-item">
+          <view
+            v-for="(item, index) in orderList"
+            :key="index"
+            class="order-item"
+            hover-class="common-hover"
+            :hover-stay-time="80"
+          >
             <view class="i-top b-b">
               <text class="time">{{ formatDateTime(item.createTime) }}</text>
               <text class="state" :style="{ color: statusColor(item.status) }">{{
@@ -74,7 +80,7 @@
             </view>
           </view>
 
-          <uni-load-more :status="loadingType"></uni-load-more>
+          <uni-load-more v-if="orderList != null && orderList.length > 0" :status="loadingType"></uni-load-more>
         </scroll-view>
       </swiper-item>
     </swiper>
@@ -89,6 +95,8 @@ import { cancelStallOrderAPI, getStallOrderListAPI } from '@/apis/stall'
 import { useOrderTabStore } from '@/stores/order-tab'
 import { STALL_ORDER_STATUS, STALL_ORDER_STATUS_TEXT } from '@/types/stall'
 import type { StallOrder } from '@/types/stall'
+// empty 组件为平铺路径（components/empty.vue），easycom 默认规则不扫描，需显式引入
+import empty from '@/components/empty.vue'
 
 // ===== 导航数据 =====
 // Tab 导航列表（摊位状态）
@@ -364,6 +372,8 @@ $text-sub: #8a7a6d;
   align-items: center;
   justify-content: space-between;
   height: 60rpx;
+  /* 供全局 .b-b:after 绝对定位，细线相对卡片头部而非页面根 */
+  position: relative;
 
   .time {
     font-size: 24rpx;
@@ -474,6 +484,8 @@ $text-sub: #8a7a6d;
   justify-content: flex-end;
   align-items: center;
   height: 100rpx;
+  /* 供全局 .b-t:after 绝对定位，细线相对操作栏而非页面根 */
+  position: relative;
 
   .action-btn {
     width: 200rpx;

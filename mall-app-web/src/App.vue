@@ -78,4 +78,9 @@ image {
 .b-t:after {
   top: 0;
 }
+
+// 按压反馈态（配合 hover-class 使用）
+.common-hover {
+  background-color: #f5efe6 !important;
+}
 </style>
